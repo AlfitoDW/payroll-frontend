@@ -1,9 +1,9 @@
 import { useState } from "react"
-import api from "../api/axios"
-import { useAuthStore } from "./authStore"
 import { useNavigate } from "react-router-dom"
+import api from "../api/axios"
 import { toast } from "sonner"
 import { Eye, EyeOff } from "lucide-react"
+import { useAuthContext } from "@/contexts/AuthContext"
 
 export default function Login() {
   const [email, setEmail] = useState("")
@@ -11,8 +11,8 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  const loginStore = useAuthStore()
-  const navigate = useNavigate()
+  const { login } = useAuthContext()
+  const navigate = useNavigate() // ✅ PENTING
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -23,24 +23,29 @@ export default function Login() {
     try {
       setLoading(true)
 
-      const res = await api.post("/login", {
-        email,
-        password,
-      })
+      const res = await api.post("/login", { email, password })
 
-      loginStore.login(res.data.user, res.data.token)
+      // simpan ke context + localStorage
+      login({
+        user: res.data.user,
+        token: res.data.token,
+      })
 
       toast.success("Login berhasil")
 
+      // 🔥 REDIRECT BERDASARKAN ROLE
       setTimeout(() => {
         if (res.data.user.role === "admin") {
-          navigate("/admin")
+          navigate("/admin", { replace: true })
         } else {
-          navigate("/employee")
+          navigate("/employee", { replace: true })
         }
-      }, 700)
+      }, 300)
+
     } catch (err: any) {
-      toast.error("Email atau password salah")
+      toast.error(
+        err.response?.data?.message || "Email atau password salah"
+      )
     } finally {
       setLoading(false)
     }
@@ -49,109 +54,42 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-stone-100 flex items-center justify-center">
       <div className="w-full max-w-sm bg-white border border-neutral-800 rounded-xl p-6 shadow-lg">
+        <h1 className="text-xl font-semibold mb-1">Payroll System</h1>
+        <p className="text-sm mb-6">Sign in to continue</p>
 
-        {/* Title */}
-        <h1 className="text-black text-xl font-semibold mb-1">
-          Payroll System
-        </h1>
-        <p className="text-black text-sm mb-6">
-          Sign in to continue
-        </p>
-
-        {/* Email */}
         <div className="mb-4">
-          <label className="block text-black text-xs mb-1">
-            Email
-          </label>
+          <label className="text-xs">Email</label>
           <input
             type="email"
-            placeholder="admin@payroll.com"
-            className="
-              w-full
-              bg-white 
-              border border-neutral-800
-              text-gray-600
-              px-3 py-2
-              rounded-md
-              text-sm
-              outline-none
-              focus:border-black 
-              transition
-            "
+            className="w-full border px-3 py-2 rounded-md"
             onChange={(e) => setEmail(e.target.value)}
           />
         </div>
 
-{/* Password */}
-<div className="mb-6">
-  <label className="block text-neutral-400 text-xs mb-1">
-    Password
-  </label>
+        <div className="mb-6">
+          <label className="text-xs">Password</label>
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              className="w-full border px-3 py-2 pr-10 rounded-md"
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <div
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </div>
+          </div>
+        </div>
 
-  <div className="relative">
-    <input
-      type={showPassword ? "text" : "password"}
-      placeholder="••••••••"
-      className="
-        w-full
-        bg-white 
-        border border-neutral-800
-        text-gray-600
-        px-3 py-2
-        pr-10
-        rounded-md
-        text-sm
-        outline-none
-        focus:border-black 
-        transition
-      "
-      onChange={(e) => setPassword(e.target.value)}
-    />
-
-    <div
-      onClick={() => setShowPassword(!showPassword)}
-      className="
-        absolute
-        right-3
-        top-1/2
-        -translate-y-1/2
-        cursor-pointer
-        text-neutral-500
-        hover:text-black
-        transition
-        select-none
-      "
-    >
-      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-    </div>
-  </div>
-</div>
-
-
-        {/* Button */}
         <button
           onClick={handleLogin}
           disabled={loading}
-          className="
-            w-full
-            bg-white
-            text-white
-            py-2
-            rounded-md
-            text-sm
-            font-medium
-            hover:bg-neutral-200
-            transition
-            disabled:opacity-50
-          "
+          className="w-full bg-black text-white py-2 rounded-md"
         >
           {loading ? "Signing in..." : "Sign in"}
         </button>
-
-        {/* Footer */}
-        <p className="text-neutral-500 text-xs text-center mt-6">
-          © 2026 Payroll System
-        </p>
       </div>
     </div>
   )
