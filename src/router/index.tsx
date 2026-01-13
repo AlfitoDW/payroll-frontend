@@ -3,10 +3,12 @@ import Login from "@/auth/Login"
 import AppLayout from "@/components/layout/AppLayout"
 import ProtectedRoute from "./ProtectedRoute"
 import AuthLayout from "@/components/layout/AuthLayout"
+import Employees from "@/pages/admin/Employees"
+import Payroll from "@/pages/admin/Payroll"
 
 const router = createBrowserRouter([
   {
-    element: <AuthLayout />, // 🔥 SEMUA ROUTE DI BAWAH INI PUNYA AuthContext
+    element: <AuthLayout />, 
     children: [
       {
         path: "/",
@@ -14,7 +16,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/login",
-        element: <Login />, // ✅ SEKARANG AMAN
+        element: <Login />, 
       },
       {
         element: <ProtectedRoute role="admin" />,
@@ -23,10 +25,10 @@ const router = createBrowserRouter([
             element: <AppLayout />,
             children: [
               { path: "/admin", element: <div>Admin Dashboard</div> },
-              { path: "/admin/employees", element: <div>Employees</div> },
+              { path: "/admin/employees", element: <Employees/> },
               { path: "/admin/employees/attendance", element: <div>Attendance</div> },
               { path: "/admin/employees/salaries", element: <div>Salaries</div> },
-              { path: "/admin/payroll", element: <div>Payroll</div> },
+              { path: "/admin/payroll", element: <Payroll/> },
               { path: "/admin/payroll/process", element: <div>Process</div> },
               { path: "/admin/payroll/history", element: <div>History</div> },
               { path: "/admin/reports", element: <div>Reports</div> },
