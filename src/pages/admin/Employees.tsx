@@ -69,7 +69,7 @@ export default function Employees() {
                 <td className="p-3">{emp.email}</td>
                 <td className="p-3">{emp.position}</td>
                 <td className="p-3 text-right">
-                  Rp {emp.salary.toLocaleString("id-ID")}
+                  Rp {Math.round(emp.salary).toLocaleString("id-ID")}
                 </td>
                 <td className="p-3 text-right flex justify-end gap-2">
                   <Button

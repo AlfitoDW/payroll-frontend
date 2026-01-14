@@ -97,7 +97,7 @@ export default function PayrollPage() {
                 </td>
 
                 <td className="p-3 text-right">
-                  Rp {p.total_salary.toLocaleString("id-ID")}
+                  Rp {Math.round(p.total_salary).toLocaleString("id-ID")}
                 </td>
 
                 <td className="p-3 text-center">
