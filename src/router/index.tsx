@@ -5,34 +5,45 @@ import ProtectedRoute from "./ProtectedRoute"
 import AuthLayout from "@/components/layout/AuthLayout"
 import Employees from "@/pages/admin/Employees"
 import Payroll from "@/pages/admin/Payroll"
+import AdminEmployeeAccountPage from "@/pages/admin/employee-accounts"
+
+// 👉 DUMMY PAGE DULU
+const EmployeePayrollPage = () => (
+  <div>Employee Payroll Page</div>
+)
 
 const router = createBrowserRouter([
   {
-    element: <AuthLayout />, 
+    element: <AuthLayout />,
     children: [
-      {
-        path: "/",
-        element: <Navigate to="/login" replace />,
-      },
-      {
-        path: "/login",
-        element: <Login />, 
-      },
+      { path: "/", element: <Navigate to="/login" replace /> },
+      { path: "/login", element: <Login /> },
+
+      /* ================= ADMIN ================= */
       {
         element: <ProtectedRoute role="admin" />,
         children: [
           {
             element: <AppLayout />,
             children: [
-              { path: "/admin", element: <div>Admin Dashboard</div> },
-              { path: "/admin/employees", element: <Employees/> },
-              { path: "/admin/employees/attendance", element: <div>Attendance</div> },
-              { path: "/admin/employees/salaries", element: <div>Salaries</div> },
-              { path: "/admin/payroll", element: <Payroll/> },
-              { path: "/admin/payroll/process", element: <div>Process</div> },
-              { path: "/admin/payroll/history", element: <div>History</div> },
-              { path: "/admin/reports", element: <div>Reports</div> },
-              { path: "/admin/settings", element: <div>Settings</div> },
+              { path: "/admin", element:  <div>Dashboard</div> },
+              { path: "/admin/employees", element: <Employees /> },
+              { path: "/admin/payroll", element: <Payroll /> },
+              { path: "/admin/employee-accounts", element: <AdminEmployeeAccountPage /> },
+            ],
+          },
+        ],
+      },
+
+      /* ================= EMPLOYEE ================= */
+      {
+        element: <ProtectedRoute role="employee" />,
+        children: [
+          {
+            element: <AppLayout />, // bisa ganti EmployeeLayout nanti
+            children: [
+              { path: "/employee", element: <Navigate to="/employee/payroll" replace /> },
+              { path: "/employee/payroll", element: <EmployeePayrollPage /> },
             ],
           },
         ],

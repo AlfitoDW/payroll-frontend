@@ -28,6 +28,7 @@ export const adminMenu: MenuItem[] = [
     icon: Users,
     children: [
       { title: "Employee List", url: "/admin/employees" },
+      { title : "Employee Accounts", url: "/admin/employee-accounts"},
       { title: "Attendance", url: "/admin/employees/attendance" },
       { title: "Salaries", url: "/admin/employees/salaries" },
     ],
