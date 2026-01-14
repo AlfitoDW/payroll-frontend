@@ -4,28 +4,43 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import PayrollForm from "./PayrollForm"
+import { Button } from "@/components/ui/button"
+import { PayrollService } from "@/services/payroll.service"
+import type { Payroll } from "@/types/payroll"
 
 type Props = {
   open: boolean
-  setOpen: (v: boolean) => void
+  setOpen: (open: boolean) => void
+  payroll: Payroll | null
   onSuccess: () => void
 }
 
-export default function PayrollDialog({ open, setOpen, onSuccess }: Props) {
+export default function PayrollPayDialog({
+  open,
+  setOpen,
+  payroll,
+  onSuccess,
+}: Props) {
+  if (!payroll) return null
+
+  const handlePay = async () => {
+    await PayrollService.pay(payroll.id)
+    onSuccess()
+    setOpen(false)
+  }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Generate Payroll</DialogTitle>
+          <DialogTitle>Confirm Payment</DialogTitle>
         </DialogHeader>
 
-        <PayrollForm
-          onSuccess={() => {
-            setOpen(false)
-            onSuccess()
-          }}
-        />
+        <p>
+          Pay payroll for <b>{payroll.employee.name}</b>?
+        </p>
+
+        <Button onClick={handlePay}>Confirm Pay</Button>
       </DialogContent>
     </Dialog>
   )

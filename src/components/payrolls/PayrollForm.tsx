@@ -11,77 +11,114 @@ import {
 import { PayrollService } from "@/services/payroll.service"
 import { EmployeeService } from "@/services/employee.service"
 import type { Employee } from "@/types/employee"
+import type { Payroll } from "@/types/payroll"
+import { toast } from "sonner"
 
 type Props = {
+  payroll?: Payroll | null
   onSuccess: () => void
 }
 
-export default function PayrollForm({ onSuccess }: Props) {
+/* ================= HELPERS ================= */
+const parseIntSafe = (val: string): number => {
+  if (!val || val.trim() === "") return 0
+  return Number.isNaN(parseInt(val, 10)) ? 0 : parseInt(val, 10)
+}
+
+export default function PayrollForm({ payroll, onSuccess }: Props) {
+  const isEdit = !!payroll
+
   const [employees, setEmployees] = useState<Employee[]>([])
-  const [employeeId, setEmployeeId] = useState<string>("") // STRING utk Select
-  const [basicSalary, setBasicSalary] = useState<number>(0)
+  const [employeeId, setEmployeeId] = useState("")
+  const [basicSalary, setBasicSalary] = useState(0)
 
   const [month, setMonth] = useState("")
-  const [allowance, setAllowance] = useState("")   // STRING
-  const [deduction, setDeduction] = useState("")   // STRING
+  const [allowance, setAllowance] = useState("")
+  const [deduction, setDeduction] = useState("")
   const [loading, setLoading] = useState(false)
 
   /* ================= FETCH EMPLOYEES ================= */
   useEffect(() => {
-    EmployeeService.getAll().then((res) => {
-      setEmployees(res ?? [])
-    })
+    EmployeeService.getAll()
+      .then((res) => setEmployees(res ?? []))
+      .catch(() => toast.error("Gagal load employee"))
   }, [])
 
-  /* ================= SYNC BASIC SALARY ================= */
+  /* ================= PREFILL SAAT EDIT ================= */
   useEffect(() => {
+    if (!payroll) return
+
+    setEmployeeId(String(payroll.employee_id))
+    setMonth(payroll.month)
+    setBasicSalary(payroll.basic_salary)
+    setAllowance(payroll.allowance?.toString() ?? "")
+    setDeduction(payroll.deduction?.toString() ?? "")
+  }, [payroll])
+
+  /* ================= SYNC BASIC SALARY (CREATE ONLY) ================= */
+  useEffect(() => {
+    if (isEdit) return
     if (!employeeId) {
       setBasicSalary(0)
       return
     }
 
-    const emp = employees.find(e => e.id === Number(employeeId))
-    setBasicSalary(emp?.salary ?? 0)
-  }, [employeeId, employees])
-
-  /* ================= HELPERS ================= */
-  const parseMoney = (val: string) => {
-    if (!val) return 0
-    return Number(val)
-  }
+    const emp = employees.find((e) => e.id === Number(employeeId))
+    setBasicSalary(Math.round(emp?.salary ?? 0))
+  }, [employeeId, employees, isEdit])
 
   /* ================= SUBMIT ================= */
   const handleSubmit = async () => {
-    if (!employeeId || !month) return
+    if (!employeeId || !month) {
+      toast.error("Employee dan bulan wajib diisi")
+      return
+    }
 
     setLoading(true)
 
     try {
-      await PayrollService.create({
+      const payload = {
         employee_id: Number(employeeId),
         month,
-        allowance: parseMoney(allowance),
-        deduction: parseMoney(deduction),
-      })
+        basic_salary: basicSalary,
+        allowance: parseIntSafe(allowance),
+        deduction: parseIntSafe(deduction),
+      }
+
+      if (isEdit && payroll) {
+        await PayrollService.update(payroll.id, payload)
+        toast.success("Payroll berhasil diperbarui")
+      } else {
+        await PayrollService.create(payload)
+        toast.success("Payroll berhasil dibuat")
+      }
 
       onSuccess()
+    } catch (err: any) {
+      toast.error(
+        err?.response?.data?.message ??
+          "Gagal memproses payroll"
+      )
     } finally {
       setLoading(false)
     }
   }
 
   /* ================= TOTAL ================= */
-  const totalSalary =
-    basicSalary + parseMoney(allowance) - parseMoney(deduction)
+  const totalSalary = Math.round(
+    basicSalary +
+      parseIntSafe(allowance) -
+      parseIntSafe(deduction)
+  )
 
   /* ================= UI ================= */
   return (
     <div className="space-y-4">
-      {/* Employee */}
       <label>Employee</label>
       <Select
         value={employeeId}
         onValueChange={setEmployeeId}
+        disabled={isEdit}
       >
         <SelectTrigger>
           <SelectValue placeholder="Select Employee" />
@@ -95,15 +132,14 @@ export default function PayrollForm({ onSuccess }: Props) {
         </SelectContent>
       </Select>
 
-      {/* Month */}
       <label>Month</label>
       <Input
         type="month"
         value={month}
         onChange={(e) => setMonth(e.target.value)}
+        disabled={isEdit}
       />
 
-      {/* Basic Salary */}
       <label>Basic Salary</label>
       <Input
         value={basicSalary.toLocaleString("id-ID")}
@@ -111,43 +147,45 @@ export default function PayrollForm({ onSuccess }: Props) {
         className="bg-muted"
       />
 
-      {/* Allowance */}
       <label>Allowance (Tunjangan)</label>
       <Input
         type="text"
         inputMode="numeric"
-        placeholder="e.g. 500000"
+        placeholder="0"
         value={allowance}
-        onChange={(e) =>
-          setAllowance(e.target.value.replace(/\D/g, ""))
-        }
+        onChange={(e) => {
+          const raw = e.target.value
+          if (/^\d*$/.test(raw)) setAllowance(raw)
+        }}
       />
 
-      {/* Deduction */}
       <label>Deduction (Potongan)</label>
       <Input
         type="text"
         inputMode="numeric"
-        placeholder="e.g. 100000"
+        placeholder="0"
         value={deduction}
-        onChange={(e) =>
-          setDeduction(e.target.value.replace(/\D/g, ""))
-        }
+        onChange={(e) => {
+          const raw = e.target.value
+          if (/^\d*$/.test(raw)) setDeduction(raw)
+        }}
       />
 
-      {/* Total */}
       <div className="text-sm text-muted-foreground">
         Total Salary:{" "}
         <b>Rp {totalSalary.toLocaleString("id-ID")}</b>
       </div>
 
-      {/* Submit */}
       <Button
         className="w-full"
         onClick={handleSubmit}
-        disabled={loading || !employeeId || !month}
+        disabled={loading}
       >
-        {loading ? "Processing..." : "Generate Payroll"}
+        {loading
+          ? "Processing..."
+          : isEdit
+          ? "Update Payroll"
+          : "Generate Payroll"}
       </Button>
     </div>
   )
