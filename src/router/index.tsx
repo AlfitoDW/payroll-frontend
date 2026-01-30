@@ -6,6 +6,7 @@ import AuthLayout from "@/components/layout/AuthLayout"
 import Employees from "@/pages/admin/Employees"
 import Payroll from "@/pages/admin/Payroll"
 import AdminEmployeeAccountPage from "@/pages/admin/employee-accounts"
+import AdminDashboard from "@/pages/admin/Dashboard"
 
 // 👉 DUMMY PAGE DULU
 const EmployeePayrollPage = () => (
@@ -26,7 +27,7 @@ const router = createBrowserRouter([
           {
             element: <AppLayout />,
             children: [
-              { path: "/admin", element:  <div>Dashboard</div> },
+              { path: "/admin", element:  <AdminDashboard /> },
               { path: "/admin/employees", element: <Employees /> },
               { path: "/admin/payroll", element: <Payroll /> },
               { path: "/admin/employee-accounts", element: <AdminEmployeeAccountPage /> },

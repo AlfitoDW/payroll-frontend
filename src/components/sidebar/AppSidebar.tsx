@@ -5,6 +5,7 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -19,7 +20,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 
-import { ChevronRight } from "lucide-react"
+import { ChevronRight, Wallet } from "lucide-react"
 import { adminMenu } from "./menu-items"
 
 export default function AppSidebar() {
@@ -28,8 +29,16 @@ export default function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r">
       <SidebarContent>
+        <SidebarHeader className="p-2">
+          <Link to="/admin" className="flex items-center gap-2.5">
+            <div className="bg-primary text-primary-foreground p-2 rounded-lg">
+              <Wallet className="h-5 w-5 transition-all group-data-[collapsible=icon]:h-4 group-data-[collapsible=icon]:w-4" />
+            </div>
+            <span className="font-semibold text-lg group-data-[collapsible=icon]:hidden">Payroll.inc</span>
+          </Link>
+        </SidebarHeader>
         <SidebarGroup>
-          <SidebarGroupLabel>Payroll System</SidebarGroupLabel>
+          <SidebarGroupLabel>Menu Utama</SidebarGroupLabel>
 
           <SidebarGroupContent>
             <SidebarMenu>
