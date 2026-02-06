@@ -1,95 +1,157 @@
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
+import { useEffect, useState } from "react"
+import SummaryCard from "@/components/dashboard/SummaryCard"
+import { EmployeeService } from "@/services/employee.service"
+import api from "@/api/axios"
+import { Button } from "@/components/ui/button"
 
-export default function AdminDashboard() {
-  // Dummy data untuk cards
-  const dashboardStats = [
-    { title: "Total Employees", value: "24" },
-    { title: "Payroll Bulan Ini", value: "Rp 120.000.000" },
-    { title: "Pending Approval", value: "3" },
-    { title: "Absensi Hari Ini", value: "22/24 Hadir" }, // Tambahan dummy
-    { title: "Karyawan Baru Bulan Ini", value: "2" }, // Tambahan dummy
-  ];
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
 
-  // Dummy data untuk tabel "Recent Activity"
-  const recentActivities = [
-    { id: 1, type: "Payroll Generated", description: "Payroll Januari untuk John Doe", date: "2026-01-28" },
-    { id: 2, type: "Employee Added", description: "Karyawan baru: Jane Smith", date: "2026-01-27" },
-    { id: 3, type: "Login", description: "Admin logged in", date: "2026-01-28" },
-    { id: 4, type: "Password Reset", description: "Password direset untuk employee ID 5", date: "2026-01-26" },
-  ];
+import {
+  Users,
+  Wallet,
+  CheckCircle,
+  Clock,
+  CalendarIcon,
+} from "lucide-react"
+
+import { format } from "date-fns"
+
+type PayrollSummary = {
+  month: string
+  total_employee: number
+  total_paid: number
+  paid: number
+  pending: number
+}
+
+export default function Dashboard() {
+  const now = new Date()
+
+  // 📅 calendar state
+  const [date, setDate] = useState<Date>(now)
+
+  // backend expects YYYY-MM
+  const month = format(date, "yyyy-MM")
+
+  const [employeeCount, setEmployeeCount] = useState(0)
+  const [summary, setSummary] = useState<PayrollSummary | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  const fetchDashboard = async () => {
+    setLoading(true)
+    try {
+      const [employeesRes, summaryRes] = await Promise.all([
+        EmployeeService.getAll(),
+        api.get(`/payrolls/summary/${month}`),
+      ])
+
+      setEmployeeCount(employeesRes.length)
+      setSummary(summaryRes.data)
+    } catch (err) {
+      console.error("Gagal load dashboard", err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchDashboard()
+  }, [month])
+
+  if (loading) return <div>Loading dashboard...</div>
 
   return (
     <div className="space-y-6">
       {/* HEADER */}
-      <div>
-        <h1 className="text-2xl font-semibold text-neutral-900">
-          Admin Dashboard
-        </h1>
-        <p className="text-neutral-500 mt-1">
-          Overview sistem payroll
-        </p>
+      <div className="flex justify-between items-center">
+        <h1 className="text-xl font-semibold">Dashboard</h1>
+
+        {/* MONTH PICKER */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <CalendarIcon size={16} />
+              {format(date, "MMMM yyyy")}
+            </Button>
+          </PopoverTrigger>
+
+          <PopoverContent className="w-auto p-0">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={(d) => d && setDate(d)}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
-      {/* STATS CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {dashboardStats.map((stat, index) => (
-          <Card key={index} className="bg-white">
-            <CardHeader className="p-4">
-              <p className="text-sm text-neutral-500">{stat.title}</p>
-              <CardTitle className="text-2xl font-bold mt-2">{stat.value}</CardTitle>
-            </CardHeader>
-          </Card>
-        ))}
+      {/* SUMMARY CARDS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <SummaryCard
+          title="Total Employees"
+          value={employeeCount}
+          icon={<Users size={28} />}
+        />
+
+        <SummaryCard
+          title="Total Payroll"
+          value={`Rp ${summary?.total_paid.toLocaleString("id-ID")}`}
+          description={`Bulan ${format(date, "MMMM yyyy")}`}
+          icon={<Wallet size={28} />}
+        />
+
+        <SummaryCard
+          title="Paid"
+          value={summary?.paid ?? 0}
+          icon={<CheckCircle size={28} />}
+        />
+
+        <SummaryCard
+          title="Pending"
+          value={summary?.pending ?? 0}
+          icon={<Clock size={28} />}
+        />
       </div>
 
-      {/* RECENT ACTIVITY */}
-      <Card className="bg-white">
-        <CardHeader className="border-b px-6 py-4">
-          <CardTitle className="text-lg font-semibold">Recent Activity</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="p-3 text-left">Type</TableHead>
-                <TableHead className="p-3 text-left">Description</TableHead>
-                <TableHead className="p-3 text-left">Date</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {recentActivities.map((activity) => (
-                <TableRow key={activity.id}>
-                  <TableCell className="p-3">{activity.type}</TableCell>
-                  <TableCell className="p-3">{activity.description}</TableCell>
-                  <TableCell className="p-3">{activity.date}</TableCell>
-                </TableRow>
-              ))}
-              {recentActivities.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={3} className="p-3 text-center text-muted-foreground">
-                    Tidak ada aktivitas terbaru.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      {/* QUICK ACTIONS */}
+      <div className="bg-white border rounded-lg p-4">
+        <h2 className="text-sm font-medium mb-3">
+          Quick Actions
+        </h2>
 
-      {/* Placeholder for other sections (e.g., Charts) */}
-      <Card className="bg-white">
-        <CardHeader className="border-b px-6 py-4">
-          <CardTitle className="text-lg font-semibold">Monthly Payroll Summary</CardTitle>
-        </CardHeader>
-        <CardContent className="p-6 text-muted-foreground text-center">
-          {/* Anda bisa menambahkan komponen grafik di sini */}
-          <p>Grafik atau ringkasan bulanan akan ditampilkan di sini.</p>
-          <div className="h-48 bg-neutral-100 rounded-md mt-4 flex items-center justify-center">
-            <p className="text-neutral-400">Placeholder Chart</p>
-          </div>
-        </CardContent>
-      </Card>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            onClick={() => (window.location.href = "/admin/payroll")}
+          >
+            Payroll List
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={() => (window.location.href = "/admin/employees")}
+          >
+            Employees
+          </Button>
+
+          <Button
+            variant="secondary"
+            onClick={() =>
+              (window.location.href = "/admin/employee-accounts")
+            }
+          >
+            Employee Accounts
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }

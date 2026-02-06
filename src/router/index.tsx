@@ -7,11 +7,9 @@ import Employees from "@/pages/admin/Employees"
 import Payroll from "@/pages/admin/Payroll"
 import AdminEmployeeAccountPage from "@/pages/admin/employee-accounts"
 import AdminDashboard from "@/pages/admin/Dashboard"
-
-// 👉 DUMMY PAGE DULU
-const EmployeePayrollPage = () => (
-  <div>Employee Payroll Page</div>
-)
+import EmployeePayrollPage from "@/pages/employee/EmployeePayrollPage"
+import ChangePassword from "@/pages/employee/ChangePassword"
+import EmployeeProfile from "@/pages/employee/Profile"
 
 const router = createBrowserRouter([
   {
@@ -44,7 +42,9 @@ const router = createBrowserRouter([
             element: <AppLayout />, // bisa ganti EmployeeLayout nanti
             children: [
               { path: "/employee", element: <Navigate to="/employee/payroll" replace /> },
-              { path: "/employee/payroll", element: <EmployeePayrollPage /> },
+              { path: "/employee/payroll", element: <EmployeePayrollPage />},
+              { path: "/employee/settings", element: <ChangePassword /> },
+              { path: "/employee/profile", element: <EmployeeProfile /> },
             ],
           },
         ],

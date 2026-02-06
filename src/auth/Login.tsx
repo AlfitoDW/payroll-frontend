@@ -12,9 +12,10 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
 
   const { login } = useAuthContext()
-  const navigate = useNavigate() // ✅ PENTING
+  const navigate = useNavigate() 
 
-  const handleLogin = async () => {
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
     if (!email || !password) {
       toast.error("Email dan password wajib diisi")
       return
@@ -33,7 +34,7 @@ export default function Login() {
 
       toast.success("Login berhasil")
 
-      // 🔥 REDIRECT BERDASARKAN ROLE
+      // REDIRECT BERDASARKAN ROLE
       setTimeout(() => {
         if (res.data.user.role === "admin") {
           navigate("/admin", { replace: true })
@@ -57,39 +58,41 @@ export default function Login() {
         <h1 className="text-xl font-semibold mb-1">Payroll System</h1>
         <p className="text-sm mb-6">Sign in to continue</p>
 
-        <div className="mb-4">
-          <label className="text-xs">Email</label>
-          <input
-            type="email"
-            className="w-full border px-3 py-2 rounded-md"
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-
-        <div className="mb-6">
-          <label className="text-xs">Password</label>
-          <div className="relative">
+        <form onSubmit={handleLogin}>
+          <div className="mb-4">
+            <label className="text-xs">Email</label>
             <input
-              type={showPassword ? "text" : "password"}
-              className="w-full border px-3 py-2 pr-10 rounded-md"
-              onChange={(e) => setPassword(e.target.value)}
+              type="email"
+              className="w-full border px-3 py-2 rounded-md"
+              onChange={(e) => setEmail(e.target.value)}
             />
-            <div
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
-            >
-              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+          </div>
+
+          <div className="mb-6">
+            <label className="text-xs">Password</label>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                className="w-full border px-3 py-2 pr-10 rounded-md"
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <div
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </div>
             </div>
           </div>
-        </div>
 
-        <button
-          onClick={handleLogin}
-          disabled={loading}
-          className="w-full bg-black text-white py-2 rounded-md"
-        >
-          {loading ? "Signing in..." : "Sign in"}
-        </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-black text-white py-2 rounded-md"
+          >
+            {loading ? "Signing in..." : "Sign in"}
+          </button>
+        </form>
       </div>
     </div>
   )

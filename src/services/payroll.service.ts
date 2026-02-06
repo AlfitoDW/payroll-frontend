@@ -38,4 +38,9 @@ export const PayrollService = {
     return res.data
   },
 
+  getMyPayrolls: async () => {
+  const res = await api.get("/my-payrolls")
+  return res.data.data
+},
+
 }

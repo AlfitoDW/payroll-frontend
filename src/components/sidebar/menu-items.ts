@@ -7,6 +7,7 @@ import {
   Settings,
 } from "lucide-react"
 
+/* ================= TYPES ================= */
 export type MenuItem = {
   title: string
   icon: LucideIcon
@@ -17,6 +18,7 @@ export type MenuItem = {
   }[]
 }
 
+/* ================= ADMIN MENU ================= */
 export const adminMenu: MenuItem[] = [
   {
     title: "Dashboard",
@@ -28,7 +30,7 @@ export const adminMenu: MenuItem[] = [
     icon: Users,
     children: [
       { title: "Employee List", url: "/admin/employees" },
-      { title : "Employee Accounts", url: "/admin/employee-accounts"},
+      { title: "Employee Accounts", url: "/admin/employee-accounts" },
       { title: "Attendance", url: "/admin/employees/attendance" },
       { title: "Salaries", url: "/admin/employees/salaries" },
     ],
@@ -52,4 +54,23 @@ export const adminMenu: MenuItem[] = [
     icon: Settings,
     url: "/admin/settings",
   },
+]
+
+/* ================= EMPLOYEE MENU ================= */
+export const employeeMenu: MenuItem[] = [
+  {
+    title: "Payroll Saya",
+    icon: Wallet,
+    url: "/employee/payroll",
+  },
+  {
+    title : "Pengaturan Akun",
+    icon: Settings,
+    url: "/employee/settings",
+  },
+  {
+    title : "Profil",
+    icon: Users,
+    url: "/employee/profile",
+  }
 ]

@@ -6,6 +6,7 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
+  SidebarFooter,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -21,35 +22,53 @@ import {
 } from "@/components/ui/collapsible"
 
 import { ChevronRight, Wallet } from "lucide-react"
-import { adminMenu } from "./menu-items"
+import { adminMenu, employeeMenu } from "./menu-items"
+import { useAuthContext } from "@/contexts/AuthContext"
+import UserAvatar from "@/components/common/UserAvatar"
+import SidebarUserMenu from "./SidebarUserMenu"
 
 export default function AppSidebar() {
   const { pathname } = useLocation()
+  const { user } = useAuthContext()
+
+  if (!user) return null
+
+  const menus =
+    user.role === "admin"
+      ? adminMenu
+      : employeeMenu
 
   return (
     <Sidebar collapsible="icon" className="border-r">
+      {/* ================= HEADER ================= */}
+      <SidebarHeader className="p-2">
+        <Link
+          to={user.role === "admin" ? "/admin" : "/employee/payroll"}
+          className="flex items-center gap-2.5"
+        >
+          <div className="bg-primary text-primary-foreground p-2 rounded-lg">
+            <Wallet className="h-5 w-5 transition-all group-data-[collapsible=icon]:h-4 group-data-[collapsible=icon]:w-4" />
+          </div>
+          <span className="font-semibold text-lg group-data-[collapsible=icon]:hidden">
+            Payroll.inc
+          </span>
+        </Link>
+      </SidebarHeader>
+
+      {/* ================= MENU ================= */}
       <SidebarContent>
-        <SidebarHeader className="p-2">
-          <Link to="/admin" className="flex items-center gap-2.5">
-            <div className="bg-primary text-primary-foreground p-2 rounded-lg">
-              <Wallet className="h-5 w-5 transition-all group-data-[collapsible=icon]:h-4 group-data-[collapsible=icon]:w-4" />
-            </div>
-            <span className="font-semibold text-lg group-data-[collapsible=icon]:hidden">Payroll.inc</span>
-          </Link>
-        </SidebarHeader>
         <SidebarGroup>
           <SidebarGroupLabel>Menu Utama</SidebarGroupLabel>
 
           <SidebarGroupContent>
             <SidebarMenu>
-              {adminMenu.map((item) => {
+              {menus.map((item) => {
                 const isParentActive =
                   item.url === pathname ||
                   item.children?.some((c) =>
                     pathname.startsWith(c.url)
                   )
 
-                // ===== MENU WITH CHILD =====
                 if (item.children) {
                   return (
                     <Collapsible
@@ -62,14 +81,7 @@ export default function AppSidebar() {
                           <SidebarMenuButton isActive={isParentActive}>
                             <item.icon className="h-4 w-4" />
                             <span>{item.title}</span>
-
-                            <ChevronRight
-                              className="
-                                ml-auto h-4 w-4
-                                transition-transform
-                                group-data-[state=open]/collapsible:rotate-90
-                              "
-                            />
+                            <ChevronRight className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
                           </SidebarMenuButton>
                         </CollapsibleTrigger>
 
@@ -94,7 +106,6 @@ export default function AppSidebar() {
                   )
                 }
 
-                // ===== SINGLE MENU =====
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
@@ -113,6 +124,11 @@ export default function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      {/* ================= FOOTER (USER) ================= */}
+      <SidebarFooter className="p-3 border-t">
+        <SidebarUserMenu />
+      </SidebarFooter>
     </Sidebar>
   )
 }
